@@ -44,14 +44,47 @@ fn main() {
     }
     println!("dimensions of ee={:?}X{:?}",ee.len(),ee[0].len());
 
+    // Trying to pass a pointer to a pointer (vector of refs above still requires constant length to compile)
+    let dd2 = vec![vec![3.14159; COL_A]; ROW_A];
+
+    println!("dimensions of dd={:?}X{:?}",dd2.len(),dd2[0].len());
+
+    let mut ee = vec! [[3.14159; COL_B]; ROW_B] ;
+    //    [[1.0,2.0,3.0,4.0,5.0,6.0,7.0], [1.0,2.0,3.0,4.0,5.0,6.0,7.0], [1.0,2.0,3.0,4.0,5.0,6.0,7.0], [1.0,2.0,3.0,4.0,5.0,6.0,7.0]];
+    for (i, row) in ee.iter_mut().enumerate() { // i in 0..ee.len()-1 { // ROW_B-1 {
+        for (j,val) in row.iter_mut().enumerate() { // j in 0..ee[0].len()-1 { // COL_B-1 {
+            // ee[i][j] = ((2*i + (7+i) * (1+j))) as f64;
+            *val = ((2*i + (7+i) * (1+j))) as f64;
+        }
+    }
+    println!("dimensions of ee={:?}X{:?}",ee.len(),ee[0].len());
+
+    let mut ee2 = vec! [vec![3.14159; COL_B]; ROW_B] ;
+    //    [[1.0,2.0,3.0,4.0,5.0,6.0,7.0], [1.0,2.0,3.0,4.0,5.0,6.0,7.0], [1.0,2.0,3.0,4.0,5.0,6.0,7.0], [1.0,2.0,3.0,4.0,5.0,6.0,7.0]];
+    for (i, row) in ee2.iter_mut().enumerate() { // i in 0..ee.len()-1 { // ROW_B-1 {
+        for (j,val) in row.iter_mut().enumerate() { // j in 0..ee[0].len()-1 { // COL_B-1 {
+            // ee[i][j] = ((2*i + (7+i) * (1+j))) as f64;
+            *val = ((2*i + (7+i) * (1+j))) as f64;
+        }
+    }
+    println!("dimensions of ee2={:?}X{:?}",ee.len(),ee[0].len());
+
+
+
+
     // multiply dd * ee = ff ; this needs to be a function, of course! ---
     //
     let mat_a = dd.clone();
     let mat_b = ee.clone();
+
+    let mat_a2 = dd2.clone();
+    let mat_b2 = ee2.clone();
+
     let mut ff = vec![[0.0; COL_B]; ROW_A];
 
     println!("Calling mat_mult()");
     mat_mult(&mat_a, &mat_b, &mut ff);
+    mat_mult2(&mat_a2, &mat_b2, &mut ff);
 
     // verify matrix is correct
     {
@@ -88,6 +121,23 @@ fn main() {
         println!();
     }
 }
+
+
+fn mat_mult2(mat_a : &Vec<Vec<f64>>, mat_b : &Vec<Vec<f64>>, ret_m : &mut Vec<[f64; 7]>) -> () {
+    for (i, row_i) in mat_a.iter().enumerate() { // no. rows in mat_a
+        println!("in mat_mult: {}th row of mat_a = {:?}",i, row_i);
+        for j in 0..mat_b[0].len() { // no. cols in B
+            let col_j = mat_b
+                .iter()
+                .map(|s| *s.iter().nth(j).unwrap())
+                .collect::<Vec<_>>();
+            println!("{}th colum of mat_b = {:?}", j, col_j);
+            ret_m[i][j] = dotprod(row_i,&col_j).0;
+        }
+    }
+}
+
+
 
 //
 // This function is still reliant on fixed size arrays!!! How can I make it accept (at least)
