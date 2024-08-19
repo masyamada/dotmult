@@ -6,6 +6,8 @@
 //
 //
 
+pub mod matmult;
+
 fn main() {
     println!("Hello, world!");
 
@@ -17,7 +19,7 @@ fn main() {
     println!("b is {:?}", b);
 
     // let c : (f64,u32) = dotprod(&a,&b);
-    let c : f64 = dotprod(&a,&b).unwrap();
+    let c : f64 = matmult::dotprod(&a,&b).unwrap();
 
     println!("dotproduct of a and b is {:?}", c);
 
@@ -46,13 +48,7 @@ fn main() {
     println!("dimensions of ee2={:?}X{:?}",ee2.len(),ee2[0].len());
 
     // Declare the call and return variables
-    let mat_a2 = dd2.clone(); // don't copy this ... it's read only in the function anyway.
-    let mat_b2 = ee2.clone(); // make sure to implicitely declare INTENT w/the code
-    // let mut ff = vec![[0.0; COL_B]; ROW_A];
-
-    // mat_mult2(&mat_a2, &mat_b2, &mut ff); // These both return the same matrix
-    let ret_mat = Some(mat_mult2(&mat_a2, &mat_b2));
-    // note: no need to declare type of size; Rust compiler should figure this out.
+    let ret_mat = Some(matmult::mat_mult(&dd2, &ee2));
 
     // verify matrix is correct
     {
@@ -88,73 +84,4 @@ fn _example(width: usize, height: usize) { // https://stackoverflow.com/question
         }
         println!();
     }
-}
-
-// 
-// Return type should not be () w/"output" being a fortran like "intent inout" that is overwritten.
-// Instead, make a clean output variable and pass it back to the calling function.
-//
-// JO Your input is dynamic ... but output has a specified size. Not good!
-//
-// fn mat_mult2(mat_a : &Vec<Vec<f64>>, mat_b : &Vec<Vec<f64>>, ret_m : &mut Vec<[f64; 7]>) -> () {
-fn mat_mult2(mat_a : &Vec<Vec<f64>>, mat_b : &Vec<Vec<f64>>) -> Option<Vec<Vec<f64>>> {
-
-    let mut tmp_mat : Vec<Vec<f64>> = vec![vec![0.0; mat_b[0].len()]; mat_a.len()];
-    for (i, row_i) in mat_a.iter().enumerate() { // no. rows in mat_a
-        println!("in mat_mult: {}th row of mat_a = {:?}",i, row_i);
-        for j in 0..mat_b[0].len() { // no. cols in B
-            let col_j = mat_b
-                .iter()
-                .map(|s| *s.iter().nth(j).unwrap())
-                .collect::<Vec<_>>();
-            println!("{}th colum of mat_b = {:?}", j, col_j);
-            tmp_mat[i][j] = dotprod(row_i,&col_j).unwrap();
-        }
-    }
- 
-    //If tests on tmp_mat are OK, then return tmp_mat, else return "None"
-    //if {
-    let ret_m : Option<Vec<Vec<f64>>> = Some(tmp_mat);
-    //} else {
-    //  let mut ret_m : Option<Vec<Vec<f64>>> = None;
-    //}
-    return ret_m;
-
-    // JO: you should have a &Vec<Vec<f64>> here.
-    //  wmy: passing back ... actually not sure what I'm passing back!? Is option above, OK?
-    // JO: you have to pass back an owned variable.
-    //  wmy: not sure if I did this -- but the code works.
-}
-
-fn dotprod(a:&[f64], b:&[f64]) -> Option<f64> { // ->  (f64, u32) { //
-
-    // Rust book ... options ... return value + flags, not ( ..., flag) ... 
-    // 
-    let mut ret_val : Option<f64> = None;
-
-    // return if the vectors are not the same length
-    if a.len() != b.len() {
-        return ret_val // (-99.0, 1);
-    }
-
-    // return if vectors are 0-length
-    if  a.len() < 1 || b.len() < 1 {
-        return ret_val // (-99.0,2);
-    }
-
-    let mut atimesb : f64 = 0.;
-
-    for i in 0..a.len() {
-        atimesb += a[i]*b[i];
-    }
-
-    // (atimesb,0) // 0 == all's well
-    ret_val = Some(atimesb);
-    return ret_val;
-
-
-    // return should look like this:
-    // fn () -> Option<f64> 
-    //
-
 }
